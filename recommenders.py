@@ -87,7 +87,7 @@ class MainRecommender:
         recs = popular_user_items.head(n).item_id.tolist()
 
         res = []
-        for item in top_user_items:
+        for item in recs:
             example_item_id = item
             example_item_row_id = itemid_to_id[example_item_id]
             closest_items = [ id_to_itemid[row_id] for row_id, score in model.similar_items(example_item_row_id, N=5)]
@@ -96,9 +96,17 @@ class MainRecommender:
         return res
     
     def get_similar_users_recommendation(self, user, N=5):
-        """Рекомендуем топ-N товаров, среди купленных похожими юзерами"""
+            """Рекомендуем топ-N товаров, среди купленных похожими юзерами"""
 
-        # your_code
+            res = []
 
-        assert len(res) == N, 'Количество рекомендаций != {}'.format(N)
-        return res
+            similar_users = self.model.similar_users(self.userid_to_id[user], N=N + 1)
+            similar_users = [self.id_to_userid[rec[0]] for rec in similar_users]
+            similar_users = similar_users[1:]
+
+            for _user in similar_users:
+                res.extend(self.get_own_recommendations(_user, N=1))
+
+            res = self._extend_with_top_popular(res, N=N)
+
+            return res
